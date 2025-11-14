@@ -1,0 +1,5 @@
+{
+  "name": "KSRTC Bus Tracker",
+  "description": "A modern, real-time bus tracking and booking application for Karnataka state buses, focusing on the Hubli-Dharwad region. It allows users to search for routes, view live bus locations, and book seats seamlessly.",
+  "requestFramePermissions": []
+}
