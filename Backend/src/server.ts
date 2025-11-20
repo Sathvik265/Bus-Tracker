@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import tripRoutes from './routes/trips';
 import bookingRoutes from './routes/bookings';
 import { connectDB } from './config/database';
+import { Request, Response } from 'express';
 
 dotenv.config();
 
@@ -34,6 +35,18 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
+app.get('/', (req: Request, res: Response) => {
+  res.send('Backend API is running.');
+});
+
+// Health check route
+app.get('/health', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date(),
+  });
+});
 // Error handling middleware
 app.use((err: any, req: Request, res: Response, next: any) => {
   console.error(err.stack);
