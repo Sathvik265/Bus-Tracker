@@ -6,6 +6,7 @@ import {
   cancelBooking 
 } from '../controllers/bookingController';
 import { authenticate } from '../middleware/auth';
+import { Request, Response } from 'express';
 
 const router = Router();
 
