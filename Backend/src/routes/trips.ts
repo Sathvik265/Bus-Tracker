@@ -7,6 +7,7 @@ import {
   updateSeatStatus 
 } from '../controllers/tripController';
 import { authenticate } from '../middleware/auth';
+import { Request, Response } from 'express';
 
 const router = Router();
 
