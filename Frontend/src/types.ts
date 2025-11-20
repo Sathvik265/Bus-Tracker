@@ -1,21 +1,12 @@
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "user" | "admin";
-}
-
-export interface SearchCriteria {
-  from: string;
-  to: string;
-  date: string;
-}
+export type SeatStatus = 'available' | 'booked' | 'ladies' | 'selected';
+export type SeatType = 'seater' | 'sleeper';
 
 export interface Seat {
   id: string;
-  seatNumber: string;
-  status: "available" | "booked" | "blocked";
-  isWindow: boolean;
+  label: string;
+  status: SeatStatus;
+  type: SeatType;
+  isLadies?: boolean;
 }
 
 export interface SeatLayout {
@@ -26,30 +17,53 @@ export interface SeatLayout {
 
 export interface Bus {
   id: string;
-  busNumber: string;
+  registrationNumber: string;
   capacity: number;
-  busType: "AC" | "Non-AC" | "Sleeper";
   seatLayout: SeatLayout;
+  operator: string;
+  type: 'Non-AC Seater' | 'AC Sleeper' | 'Volvo Multi-Axle';
+}
+
+export interface Route {
+  id: string;
+  origin: { name: string; coords: [number, number] };
+  destination: { name: string; coords: [number, number] };
+  stops: { name: string; coords: [number, number] }[];
+  distanceKm: number;
 }
 
 export interface Trip {
   id: string;
-  from: string;
-  to: string;
-  departureTime: string;
-  arrivalTime: string;
-  date: string;
-  bus: Bus;
+  routeId: string;
+  busId: string;
+  startTime: string; // ISO 8601 format
+  endTime: string; // ISO 8601 format
   fare: number;
+  status: 'scheduled' | 'onroute' | 'completed' | 'cancelled';
   seatsAvailable: number;
+  route: Route;
+  bus: Bus;
+  currentLocation?: [number, number]; // [lat, lng]
 }
 
 export interface Booking {
-  id: string;
-  user: User;
-  trip: Trip;
-  seats: Seat[];
+  id:string;
+  tripId: string;
+  userId: string;
+  seats: { seatId: string; price: number }[];
   totalAmount: number;
-  status: "CONFIRMED" | "CANCELLED" | "PENDING";
-  bookingDate: string;
+  status: 'HOLD' | 'CONFIRMED' | 'CANCELLED';
+  createdAt: string; // ISO 8601 format
+}
+
+export interface SearchCriteria {
+    from: string;
+    to: string;
+    date: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  avatarUrl?: string;
 }
