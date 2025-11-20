@@ -1,4 +1,5 @@
-import { Router } from 'express';
+// Backend/src/routes/bookings.ts
+import { Router, Request, Response } from 'express';
 import { 
   createBooking, 
   getUserBookings, 
@@ -6,19 +7,10 @@ import {
   cancelBooking 
 } from '../controllers/bookingController';
 import { authenticate } from '../middleware/auth';
-import { Request, Response } from 'express';
 
 const router = Router();
 
-// All booking routes require authentication
-router.use(authenticate);
-
-router.post('/', createBooking);
-router.get('/user', getUserBookings);
-router.get('/:bookingId', getBookingById);
-router.patch('/:bookingId/cancel', cancelBooking);
-// Add this near the bottom of Backend/src/routes/bookings.ts, before `export default router;`
-// If your router applies auth middleware globally, put this route above that middleware section.
+// Public test route — must come BEFORE the auth middleware
 router.get('/test', (_req: Request, res: Response) => {
   res.json({
     ok: true,
@@ -31,5 +23,13 @@ router.get('/test', (_req: Request, res: Response) => {
   });
 });
 
+// Apply authentication for all routes below
+router.use(authenticate);
+
+// Protected booking routes
+router.post('/', createBooking);
+router.get('/user', getUserBookings);
+router.get('/:bookingId', getBookingById);
+router.patch('/:bookingId/cancel', cancelBooking);
 
 export default router;
