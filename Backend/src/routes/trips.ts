@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { 
   searchTrips, 
   getTripById, 
@@ -7,16 +7,10 @@ import {
   updateSeatStatus 
 } from '../controllers/tripController';
 import { authenticate } from '../middleware/auth';
-import { Request, Response } from 'express';
 
 const router = Router();
 
-router.get('/search', searchTrips);
-router.get('/:tripId', getTripById);
-router.post('/', authenticate, createTrip);
-router.put('/:tripId', authenticate, updateTrip);
-router.patch('/:tripId/seats', authenticate, updateSeatStatus);
-// Add this near the bottom of Backend/src/routes/trips.ts, before `export default router;`
+// Public test route — must be before param routes
 router.get('/test', (_req: Request, res: Response) => {
   res.json({
     ok: true,
@@ -29,5 +23,15 @@ router.get('/test', (_req: Request, res: Response) => {
   });
 });
 
+// Non-param routes
+router.get('/search', searchTrips);
+
+// Parameter route must come after the static /test route
+router.get('/:tripId', getTripById);
+
+// Protected routes
+router.post('/', authenticate, createTrip);
+router.put('/:tripId', authenticate, updateTrip);
+router.patch('/:tripId/seats', authenticate, updateSeatStatus);
 
 export default router;
