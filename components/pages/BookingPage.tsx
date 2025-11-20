@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Trip, Seat, Booking } from '../../types';
+import { Trip, Seat } from '../../types';
 import SeatSelector from '../SeatSelector';
-import { v4 as uuidv4 } from 'uuid';
 
 interface BookingPageProps {
   trip: Trip;
-  onConfirmBooking: (booking: Booking) => void;
+  onConfirmBooking: (selectedSeats: Seat[]) => void;
 }
 
 const BookingPage: React.FC<BookingPageProps> = ({ trip, onConfirmBooking }) => {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([]);
   const [totalFare, setTotalFare] = useState(0);
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes hold
-  const [isBooking, setIsBooking] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,21 +26,10 @@ const BookingPage: React.FC<BookingPageProps> = ({ trip, onConfirmBooking }) => 
   }, [trip.fare]);
 
   const handleBookingConfirm = () => {
-    setIsBooking(true);
-    // Simulate API call
-    setTimeout(() => {
-      const booking: Booking = {
-        id: `BK-${uuidv4().slice(0, 8).toUpperCase()}`,
-        tripId: trip.id,
-        userId: 'user123', // Mock user
-        seats: selectedSeats.map(s => ({ seatId: s.id, price: trip.fare })),
-        totalAmount: totalFare,
-        status: 'HOLD',
-        createdAt: new Date().toISOString(),
-      };
-      onConfirmBooking(booking);
-      setIsBooking(false);
-    }, 2000);
+    setIsProcessing(true);
+    onConfirmBooking(selectedSeats);
+    // The parent component will handle the rest of the booking flow, 
+    // including loading states and navigation.
   };
 
   const minutes = Math.floor(timeLeft / 60);
@@ -88,10 +76,10 @@ const BookingPage: React.FC<BookingPageProps> = ({ trip, onConfirmBooking }) => 
 
             <button
               onClick={handleBookingConfirm}
-              disabled={selectedSeats.length === 0 || isBooking}
+              disabled={selectedSeats.length === 0 || isProcessing}
               className="mt-6 w-full bg-brand-dark hover:bg-brand-dark/90 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:bg-brand/50 disabled:cursor-not-allowed flex items-center justify-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             >
-              {isBooking ? (
+              {isProcessing ? (
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

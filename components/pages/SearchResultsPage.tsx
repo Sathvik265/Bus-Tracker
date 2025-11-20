@@ -1,44 +1,60 @@
+
 import React, { useState, useEffect } from 'react';
-import { Trip, SearchCriteria } from '../../types';
+import { Trip, SearchCriteria, Seat } from '../../types';
 import TripCard from '../TripCard';
 import TripDetails from '../TripDetails';
+import { Chat } from '@google/genai';
 
 interface SearchResultsPageProps {
   trips: Trip[];
   searchCriteria: SearchCriteria;
   error?: string | null;
+  chatSession: Chat | null;
+  onConfirmBooking: (trip: Trip, seats: Seat[]) => void;
+  setLiveTrips: React.Dispatch<React.SetStateAction<Trip[]>>;
 }
 
-const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ trips, searchCriteria, error }) => {
-  const [liveTrips, setLiveTrips] = useState<Trip[]>(trips);
+const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ trips, searchCriteria, error, chatSession, onConfirmBooking, setLiveTrips }) => {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
 
+  // Only reset selection when search criteria changes (new search), 
+  // not when trips update due to live tracking.
    useEffect(() => {
-    setLiveTrips(trips);
-    setSelectedTripId(null); // Reset selection on new search
-  }, [trips]);
+    setSelectedTripId(null); 
+  }, [searchCriteria]);
 
   useEffect(() => {
-    // Simulate real-time bus location updates
-    const interval = setInterval(() => {
-      setLiveTrips(prevTrips =>
-        prevTrips.map(trip => {
-          if (trip.status === 'onroute' && trip.currentLocation) {
-            return {
-              ...trip,
-              currentLocation: [
-                trip.currentLocation[0] - 0.005, // Simulate movement north
-                trip.currentLocation[1] + 0.005, // Simulate movement east
-              ] as [number, number],
-            };
-          }
-          return trip;
-        })
-      );
-    }, 5000); // Update every 5 seconds
+    if (!chatSession) return;
+
+    const interval = setInterval(async () => {
+      const onRouteTripIds = trips.filter(t => t.status === 'onroute').map(t => t.id);
+      if (onRouteTripIds.length === 0) return;
+
+      try {
+        const response = await chatSession.sendMessage({
+          message: `Provide a live update for trips [${onRouteTripIds.map(id => `"${id}"`).join(', ')}]. Slightly advance their currentLocation coordinates as if they are moving along their route towards their destination. Return a JSON array of these updated trips.`
+        });
+        
+        const updatedTrips = JSON.parse(response.text) as Trip[];
+        
+        setLiveTrips(prevTrips => {
+          const newTrips = [...prevTrips];
+          updatedTrips.forEach(updatedTrip => {
+            const index = newTrips.findIndex(t => t.id === updatedTrip.id);
+            if (index !== -1) {
+              newTrips[index] = { ...newTrips[index], ...updatedTrip };
+            }
+          });
+          return newTrips;
+        });
+
+      } catch (e) {
+        console.warn("Failed to get live location updates:", e);
+      }
+    }, 7000); // Update every 7 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [chatSession, trips, setLiveTrips]);
 
   const handleSelectTrip = (tripId: string) => {
     setSelectedTripId(currentId => (currentId === tripId ? null : tripId));
@@ -59,20 +75,25 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ trips, searchCrit
           Buses from <span className="text-brand-dark">{searchCriteria.from}</span> to <span className="text-brand-dark">{searchCriteria.to}</span>
         </h2>
         <p className="text-slate-600">
-          <span className="font-semibold">{liveTrips.length} buses found</span> for {new Date(searchCriteria.date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          <span className="font-semibold">{trips.length} buses found</span> for {new Date(searchCriteria.date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       </div>
       
-      {liveTrips.length > 0 ? (
+      {trips.length > 0 ? (
         <div className="grid grid-cols-1 gap-6">
-          {liveTrips.map(trip => (
+          {trips.map(trip => (
             <React.Fragment key={trip.id}>
               <TripCard 
                 trip={trip} 
                 isSelected={selectedTripId === trip.id}
                 onSelectTrip={handleSelectTrip}
               />
-              {selectedTripId === trip.id && <TripDetails trip={trip} />}
+              {selectedTripId === trip.id && (
+                <TripDetails 
+                    trip={trip} 
+                    onConfirmBooking={(selectedSeats) => onConfirmBooking(trip, selectedSeats)}
+                />
+              )}
             </React.Fragment>
           ))}
         </div>

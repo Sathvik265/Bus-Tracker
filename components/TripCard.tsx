@@ -33,16 +33,6 @@ const ChevronDownIcon: React.FC<{className?: string}> = ({className}) => (
 
 
 const TripCard: React.FC<TripCardProps> = ({ trip, isSelected, onSelectTrip }) => {
-  const origin = encodeURIComponent(trip.route.origin.name);
-  const destination = encodeURIComponent(trip.route.destination.name);
-  const travelDate = new Date(trip.startTime);
-  const day = String(travelDate.getDate()).padStart(2, '0');
-  const month = String(travelDate.getMonth() + 1).padStart(2, '0');
-  const year = travelDate.getFullYear();
-  const formattedDate = `${year}-${month}-${day}`;
-  
-  const bookingUrl = `https://www.redbus.in/search?fromCityName=${origin}&toCityName=${destination}&onward=${formattedDate}`;
-
   return (
     <div 
       className={`bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden transition-all duration-300 cursor-pointer ${isSelected ? 'scale-[1.01] ring-2 ring-brand' : 'hover:shadow-xl'}`}
@@ -97,15 +87,11 @@ const TripCard: React.FC<TripCardProps> = ({ trip, isSelected, onSelectTrip }) =
                 <p className="text-green-600 font-bold">{trip.seatsAvailable} seats available</p>
                 <p className="text-sm text-slate-500">{trip.bus.seatLayout.seats.some(s => s.type === 'sleeper') ? 'Sleeper available' : 'Seater only'}</p>
             </div>
-            <a
-              href={bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()} 
+            <button
               className="w-full md:w-auto mt-4 bg-brand-dark hover:bg-brand-dark/90 text-white font-bold py-2 px-6 rounded-xl transition-colors text-center shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
             >
-              Book Seats
-            </a>
+              View Seats
+            </button>
         </div>
       </div>
     </div>

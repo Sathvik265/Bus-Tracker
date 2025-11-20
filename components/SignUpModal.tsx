@@ -1,14 +1,15 @@
 
 import React, { useState } from 'react';
 
-interface LoginModalProps {
-  onLogin: (email: string, password: string) => void;
+interface SignUpModalProps {
+  onSignUp: (name: string, email: string, password: string) => void;
   onClose: () => void;
-  onSwitchToSignUp: () => void;
+  onSwitchToLogin: () => void;
   authError: string | null;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSignUp, authError }) => {
+const SignUpModal: React.FC<SignUpModalProps> = ({ onSignUp, onClose, onSwitchToLogin, authError }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [validationError, setValidationError] = useState('');
@@ -17,7 +18,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSig
     e.preventDefault();
     setValidationError('');
 
-    if (!email || !password) {
+    if (!name || !email || !password) {
       setValidationError('Please fill in all fields');
       return;
     }
@@ -33,7 +34,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSig
       return;
     }
 
-    onLogin(email, password);
+    onSignUp(name, email, password);
   };
 
   return (
@@ -51,11 +52,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSig
         <div className="text-center mb-6">
             <div className="mx-auto h-12 w-12 bg-brand/10 rounded-full flex items-center justify-center mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-brand-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800">Welcome Back</h2>
-            <p className="mt-2 text-slate-500 text-sm">Sign in to manage your bookings</p>
+            <h2 className="text-2xl font-bold text-slate-800">Create Account</h2>
+            <p className="mt-2 text-slate-500 text-sm">Join KSRTC Live today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,6 +75,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSig
                 </div>
             )}
             
+            <div>
+                <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-brand outline-none transition-all text-slate-900 placeholder-gray-400"
+                    placeholder="John Doe"
+                />
+            </div>
+
             <div>
                 <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
                 <input 
@@ -102,13 +115,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSig
                 type="submit"
                 className="w-full bg-brand hover:bg-brand-dark text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 mt-2 flex justify-center items-center"
             >
-                Sign In
+                Sign Up
             </button>
         </form>
         
         <div className="mt-6 text-center">
             <p className="text-xs text-slate-500">
-                Don't have an account? <button onClick={onSwitchToSignUp} className="text-brand-dark font-semibold hover:underline focus:outline-none">Sign up</button>
+                Already have an account? <button onClick={onSwitchToLogin} className="text-brand-dark font-semibold hover:underline focus:outline-none">Login</button>
             </p>
         </div>
       </div>
@@ -116,4 +129,4 @@ const LoginModal: React.FC<LoginModalProps> = ({ onLogin, onClose, onSwitchToSig
   );
 };
 
-export default LoginModal;
+export default SignUpModal;

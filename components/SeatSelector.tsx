@@ -44,23 +44,26 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ seatLayout, onSelectionChan
   const cols = isSleeperLayout ? 3 : 5;
 
   useEffect(() => {
-    // Simulate another user booking a seat
-    const timeout = setTimeout(() => {
-        setSeats(prevSeats => {
-            const availableSeats = prevSeats.filter(s => s.status === 'available');
-            if (availableSeats.length > 0) {
-                const randomSeat = availableSeats[Math.floor(Math.random() * availableSeats.length)];
-                // FIX: Explicitly type `newSeats` as Seat[] to ensure correct type inference within the map.
-                const newSeats: Seat[] = prevSeats.map(s => s.id === randomSeat.id ? { ...s, status: 'booked' } : s);
-                // alert(`Seat ${randomSeat.label} was just booked!`);
-                return newSeats;
-            }
-            return prevSeats;
-        });
-    }, 15000); // After 15 seconds
+    // React to external changes in seat layout (e.g., from polling)
+    setSeats(currentSeats => {
+        // Create a map of current statuses to preserve 'selected' state if possible
+        const statusMap = new Map<string, SeatStatus>();
+        currentSeats.forEach(s => statusMap.set(s.id, s.status));
 
-    return () => clearTimeout(timeout);
-  }, [seats]);
+        return seatLayout.seats.map(newSeat => {
+            const currentStatus = statusMap.get(newSeat.id);
+            // If the seat is now booked externally, respect that
+            if (newSeat.status === 'booked') {
+                return newSeat;
+            }
+            // If it was selected by the current user, keep it selected
+            if (currentStatus === 'selected') {
+                return { ...newSeat, status: 'selected' };
+            }
+            return newSeat;
+        });
+    });
+  }, [seatLayout]);
 
 
   const handleSeatClick = (clickedSeat: Seat) => {
@@ -78,7 +81,6 @@ const SeatSelector: React.FC<SeatSelectorProps> = ({ seatLayout, onSelectionChan
     }
     setSelectedSeatIds(newSelectedIds);
 
-    // FIX: Explicitly type `updatedSeats` as Seat[] to ensure correct type inference for status properties.
     const updatedSeats: Seat[] = seats.map(seat => {
       if (seat.status === 'booked') return seat;
       
